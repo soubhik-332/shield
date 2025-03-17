@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safety Shield</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #ff6f61;
+        }
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        .status {
+            font-size: 1.1rem;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        .button {
+            background: #ff6f61;
+            color: #fff;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .button:hover {
+            background: #ff4a3d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Safety Shield</h1>
+        <p>Say "help" to initiate an emergency call.</p>
+        <div class="status" id="status">Listening for "help"...</div>
+        <button class="button" onclick="startListening()">Start Listening</button>
+    </div>
+
+    <script>
+        // Check if the browser supports the Web Speech API
+        if (!('webkitSpeechRecognition' in window)) {
+            alert('Your browser does not support the Web Speech API. Please use Chrome or another supported browser.');
+        } else {
+            let recognition;
+            const statusElement = document.getElementById('status');
+
+            function startListening() {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = true; // Keep listening continuously
+                recognition.interimResults = false; // Only final results
+                recognition.lang = 'en-US'; // Set language
+
+                // Start recognition
+                recognition.start();
+                statusElement.textContent = 'Listening for "help"...';
+
+                // Event listener for when speech is recognized
+                recognition.onresult = function(event) {
+                    const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
+                    if (transcript.includes('help')) {
+                        statusElement.textContent = 'Detected "help"!';
+                        // Prompt the user to confirm the call
+                        const confirmCall = confirm('You said "help". Do you want to call the emergency number?');
+                        if (confirmCall) {
+                            // Use the tel: URI scheme to initiate a call
+                            window.location.href = 'tel:+1234567890'; // Replace with the desired phone number
+                        } else {
+                            statusElement.textContent = 'Call canceled. Listening for "help"...';
+                        }
+                    }
+                };
+
+                // Handle errors
+                recognition.onerror = function(event) {
+                    console.error('Speech recognition error:', event.error);
+                    statusElement.textContent = 'Error: ' + event.error;
+                };
+            }
+
+            // Request microphone access
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(function(stream) {
+                    console.log('Microphone access granted');
+                })
+                .catch(function(err) {
+                    console.error('Microphone access denied:', err);
+                    statusElement.textContent = 'Microphone access denied. Please allow access to use Safety Shield.';
+                });
+        }
+    </script>
+</body>
+</html>
